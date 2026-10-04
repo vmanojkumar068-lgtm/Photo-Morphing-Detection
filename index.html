@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="MorphGuard helps teams understand and spot signs of image morphing and digital tampering." />
+    <title>MorphGuard — Image integrity, made visible</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --ink: #0d1b24;
+        --muted: #65737d;
+        --line: #dfe5e6;
+        --paper: #f8faf9;
+        --white: #ffffff;
+        --lime: #c9f368;
+        --teal: #00a99d;
+        --blue: #2563eb;
+        --coral: #f87865;
+        --shadow: 0 24px 70px rgba(13, 27, 36, .13);
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body { margin: 0; color: var(--ink); background: var(--paper); font-family: Manrope, Arial, sans-serif; }
+      a { color: inherit; text-decoration: none; }
+      button, input { font: inherit; }
+      .shell { width: min(1180px, calc(100% - 48px)); margin: auto; }
+      .eyebrow { margin: 0 0 14px; color: var(--teal); font: 500 11px/1.2 "DM Mono", monospace; letter-spacing: .12em; text-transform: uppercase; }
+      .section-heading { max-width: 690px; margin: 0; font-size: clamp(30px, 4vw, 50px); letter-spacing: -.065em; line-height: 1.06; }
+      .section-copy { max-width: 570px; margin: 20px 0 0; color: var(--muted); font-size: 16px; line-height: 1.7; }
+
+      header { position: sticky; top: 0; z-index: 20; background: rgba(248,250,249,.86); backdrop-filter: blur(14px); border-bottom: 1px solid rgba(223,229,230,.75); }
+      .topbar { height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 28px; }
+      .brand { display: inline-flex; align-items: center; gap: 11px; font-size: 18px; font-weight: 800; letter-spacing: -.06em; }
+      .mark { position: relative; display: grid; place-items: center; width: 31px; height: 31px; overflow: hidden; border: 2px solid var(--ink); border-radius: 50%; }
+      .mark::before, .mark::after { content: ""; position: absolute; width: 18px; height: 18px; border-radius: 50%; }
+      .mark::before { left: -5px; background: var(--lime); }
+      .mark::after { right: -5px; background: var(--teal); mix-blend-mode: multiply; }
+      nav { display: flex; align-items: center; gap: 27px; color: #47545d; font-size: 13px; font-weight: 700; }
+      nav a:hover { color: var(--teal); }
+      .nav-cta, .button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; border: 0; border-radius: 999px; cursor: pointer; transition: transform .2s, box-shadow .2s, background .2s; font-weight: 800; }
+      .nav-cta { padding: 10px 17px; background: var(--ink); color: white; font-size: 12px; }
+      .nav-cta:hover, .button:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(13,27,36,.18); }
+
+      .hero { position: relative; min-height: 650px; overflow: hidden; background: var(--ink); color: white; }
+      .hero-grid { display: grid; grid-template-columns: 1.03fr .97fr; align-items: center; min-height: 650px; gap: 42px; }
+      .hero h1 { max-width: 660px; margin: 0; font-size: clamp(45px, 6.2vw, 82px); line-height: .98; letter-spacing: -.085em; }
+      .hero h1 em { color: var(--lime); font-style: normal; }
+      .hero .intro { max-width: 550px; margin: 25px 0 29px; color: #b6c1c5; font-size: 17px; line-height: 1.65; }
+      .hero-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+      .button { padding: 14px 22px; font-size: 13px; }
+      .button-primary { background: var(--lime); color: var(--ink); }
+      .button-ghost { color: white; border: 1px solid #53626a; background: transparent; }
+      .button-ghost:hover { background: #1b2e39; }
+      .stat-row { display: flex; align-items: center; gap: 28px; margin-top: 54px; }
+      .stat { padding-right: 28px; border-right: 1px solid #40505a; }
+      .stat:last-child { padding: 0; border: 0; }
+      .stat strong { display: block; color: var(--lime); font: 500 24px/1 "DM Mono", monospace; }
+      .stat span { display: block; margin-top: 8px; color: #91a0a7; font-size: 11px; }
+      .hero-art { position: relative; height: 500px; }
+      .halo { position: absolute; inset: 24px 0 auto auto; width: 455px; height: 455px; border: 1px solid rgba(201,243,104,.32); border-radius: 50%; }
+      .halo::before, .halo::after { content: ""; position: absolute; inset: 34px; border: 1px solid rgba(201,243,104,.18); border-radius: 50%; }
+      .halo::after { inset: 78px; }
+      .portrait-card { position: absolute; right: 26px; top: 63px; width: min(365px, 90%); aspect-ratio: .85; overflow: hidden; transform: rotate(4deg); border: 1px solid rgba(255,255,255,.4); border-radius: 7px; background: #9fa9ad; box-shadow: 24px 27px 0 rgba(0,169,157,.55); }
+      .portrait-card img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.74) contrast(1.08); }
+      .portrait-card::after { content: ""; position: absolute; left: 50%; top: 0; height: 100%; width: 2px; background: var(--lime); box-shadow: 0 0 20px 5px rgba(201,243,104,.82); animation: scan 3.8s ease-in-out infinite; }
+      @keyframes scan { 0%,100% { left: 16%; opacity: .8; } 50% { left: 84%; opacity: 1; } }
+      .tag { position: absolute; display: flex; align-items: center; gap: 7px; padding: 9px 11px; border: 1px solid rgba(255,255,255,.32); border-radius: 5px; color: #e8f6f4; background: rgba(13,27,36,.77); backdrop-filter: blur(6px); font: 500 10px "DM Mono", monospace; letter-spacing: .03em; }
+      .tag-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--coral); box-shadow: 0 0 0 4px rgba(248,120,101,.18); }
+      .tag-one { top: 102px; left: 0; }.tag-two { bottom: 68px; left: 44px; }.tag-two .tag-dot { background: var(--lime); box-shadow: 0 0 0 4px rgba(201,243,104,.15); }
+      .art-label { position: absolute; right: 25px; bottom: 23px; color: #82929a; font: 400 10px "DM Mono", monospace; letter-spacing: .06em; }
+
+      .trust-bar { background: var(--lime); }
+      .trust-inner { display: grid; grid-template-columns: 1.25fr repeat(3, 1fr); align-items: center; min-height: 101px; gap: 25px; }
+      .trust-label { font-size: 13px; font-weight: 800; letter-spacing: -.03em; }
+      .trust-item { color: #304227; font: 500 12px "DM Mono", monospace; text-transform: uppercase; letter-spacing: .07em; }
+
+      section { padding: 112px 0; }
+      .what-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: clamp(45px, 8vw, 115px); align-items: center; }
+      .explain-art { position: relative; min-height: 440px; }
+      .face { position: absolute; top: 18px; width: 56%; aspect-ratio: .83; overflow: hidden; border-radius: 5px; background: #d5dddc; }
+      .face img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(.2) contrast(1.05); }
+      .face-a { left: 1%; transform: rotate(-7deg); }.face-b { right: 0; transform: rotate(7deg); }
+      .blend { position: absolute; top: 67px; left: 31%; z-index: 2; display: grid; place-items: center; width: 38%; aspect-ratio: 1; border: 4px solid var(--paper); border-radius: 50%; background: var(--teal); color: white; box-shadow: 0 15px 35px rgba(13,27,36,.25); }
+      .blend svg { width: 49px; height: 49px; }
+      .explain-note { position: absolute; bottom: 0; left: 9%; z-index: 3; max-width: 330px; padding: 17px 20px; border-left: 4px solid var(--coral); background: white; box-shadow: 0 12px 30px rgba(13,27,36,.1); font-size: 13px; font-weight: 700; line-height: 1.5; }
+      .definition { padding-bottom: 30px; border-bottom: 1px solid var(--line); font-size: 20px; line-height: 1.5; letter-spacing: -.035em; }
+      .definition b { color: var(--teal); }
+      .risk-list { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 40px; margin-top: 29px; }
+      .risk { display: flex; gap: 13px; font-size: 13px; line-height: 1.55; }.risk svg { flex: 0 0 20px; color: var(--teal); }
+      .risk strong { display: block; margin-bottom: 2px; font-size: 13px; }.risk p { margin: 0; color: var(--muted); }
+
+      .methods { background: #e9efed; }
+      .method-header { display: flex; justify-content: space-between; align-items: end; gap: 30px; }
+      .method-header .section-copy { margin-bottom: 4px; }
+      .method-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 48px; }
+      .method { position: relative; min-height: 277px; padding: 24px; overflow: hidden; border: 1px solid transparent; background: white; transition: transform .25s, border .25s, box-shadow .25s; }
+      .method:hover { z-index: 2; transform: translateY(-7px); border-color: var(--teal); box-shadow: var(--shadow); }
+      .method-number { color: #a0abad; font: 500 11px "DM Mono", monospace; }
+      .method .icon-box { display: grid; place-items: center; width: 46px; height: 46px; margin: 38px 0 22px; border-radius: 50%; background: var(--lime); color: var(--ink); }.method:nth-child(2) .icon-box { background: #a8e4df; }.method:nth-child(3) .icon-box { background: #ffd1c9; }.method:nth-child(4) .icon-box { background: #cbd8fc; }
+      .method h3 { margin: 0 0 9px; font-size: 17px; letter-spacing: -.05em; }.method p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+      .method-arrow { position: absolute; right: 22px; bottom: 21px; color: var(--teal); font-size: 21px; }
+
+      .lab { background: var(--ink); color: white; }
+      .lab-grid { display: block; }
+      .lab-intro { display: grid; grid-template-columns: .82fr 1.18fr; gap: 65px; align-items: end; }
+      .lab .section-copy { color: #a8b7bc; }.lab .eyebrow { color: var(--lime); }
+      .check-list { margin: 30px 0 0; padding: 0; list-style: none; }.check-list li { display: flex; gap: 11px; margin: 12px 0; color: #d9e0e1; font-size: 13px; }.check-list i { color: var(--lime); font-style: normal; }
+      .analyzer { margin-top: 48px; overflow: hidden; border: 1px solid #45555e; border-radius: 9px; background: #142630; box-shadow: 0 25px 65px rgba(0,0,0,.3); }
+      .analyzer-top { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #3a4c55; }.window-dots { display: flex; gap: 5px; }.window-dots i { width: 7px; height: 7px; border-radius: 50%; background: #647780; }.analyzer-top span { color: #9aacb1; font: 10px "DM Mono", monospace; }
+      .analyzer-body { display: grid; grid-template-columns: 1.08fr .92fr; min-height: 500px; }
+      .drop-zone { position: relative; display: grid; place-items: center; min-height: 500px; padding: 32px; overflow: hidden; border-right: 1px solid #3a4c55; text-align: center; cursor: pointer; }
+      .drop-zone.drag { background: rgba(201,243,104,.1); }.drop-zone img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .35s; }.drop-zone.has-image img { opacity: .64; }.drop-zone.has-image::after { content: ""; position: absolute; left: 20%; top: 0; width: 2px; height: 100%; background: var(--lime); box-shadow: 0 0 16px var(--lime); animation: scan 2.8s infinite; }.evidence-map { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; mix-blend-mode: screen; transition: opacity .35s; }.drop-zone.has-image .evidence-map { opacity: .75; }
+      .upload-copy { position: relative; z-index: 1; }.upload-icon { display: grid; place-items: center; width: 64px; height: 64px; margin: auto auto 18px; border: 1px dashed #7a9098; border-radius: 50%; color: var(--lime); }.upload-copy strong { display: block; font-size: 18px; letter-spacing: -.04em; }.upload-copy span { display: block; margin-top: 9px; color: #8da0a6; font-size: 12px; }.upload-copy b { color: var(--lime); }.file-input { display: none; }
+      .results { padding: 30px; }.results-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; color: #a7b8bd; font: 10px "DM Mono", monospace; letter-spacing: .07em; }.demo-pill { padding: 5px 7px; border: 1px solid #53666f; border-radius: 20px; color: #aebec3; font-size: 9px; letter-spacing: 0; }
+      .verdict-panel { padding: 24px; border: 1px solid #40525a; border-left: 4px solid #f7c454; border-radius: 4px; background: #10212a; }.verdict-kicker { color: #a9bbc0; font: 10px "DM Mono", monospace; letter-spacing: .09em; }.verdict-large { margin: 10px 0 7px; color: white; font-size: clamp(29px, 3.2vw, 45px); font-weight: 800; line-height: .98; letter-spacing: -.075em; }.verdict-detail { margin: 0; color: #afc0c4; font-size: 12px; line-height: 1.55; }
+      .assessment-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 12px; }.assessment { min-height: 127px; padding: 15px; border: 1px solid #374b55; border-top: 3px solid #71848c; border-radius: 3px; background: rgba(10,30,39,.64); }.assessment[data-state="flag"] { border-top-color: var(--coral); }.assessment[data-state="review"] { border-top-color: #f7c454; }.assessment[data-state="clear"] { border-top-color: var(--lime); }.assessment[data-state="unknown"] { border-top-color: #768b94; }.assessment span { color: #9fb1b6; font: 9px "DM Mono", monospace; letter-spacing: .07em; text-transform: uppercase; }.assessment strong { display: block; margin: 10px 0 6px; color: white; font-size: 13px; line-height: 1.08; letter-spacing: -.035em; }.assessment p { margin: 0; color: #9fb0b5; font-size: 10px; line-height: 1.45; }
+      .gauge-wrap { display: flex; align-items: center; gap: 18px; margin-top: 22px; }.gauge { position: relative; display: grid; place-items: center; width: 124px; height: 124px; border-radius: 50%; background: conic-gradient(#f7c454 0 0%, #38515a 0% 100%); }.gauge::before { content: ""; width: 98px; height: 98px; border-radius: 50%; background: #142630; }.gauge strong { position: absolute; font: 500 25px "DM Mono", monospace; }.score-note strong { display: block; color: white; font-size: 15px; }.score-note span { display: block; margin-top: 5px; color: #9cafb4; font-size: 11px; line-height: 1.5; }
+      .image-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 20px; }.fact { padding: 11px; border: 1px solid #374b55; border-radius: 3px; }.fact span { display: block; color: #8fa4aa; font: 9px "DM Mono", monospace; letter-spacing: .06em; }.fact b { display: block; margin-top: 5px; color: #e1e8e9; font: 12px "DM Mono", monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .signals { display: grid; gap: 13px; margin-top: 23px; }.signal { display: grid; grid-template-columns: 135px 1fr 33px; align-items: center; gap: 10px; color: #c5d1d4; font-size: 10px; }.bar { height: 6px; overflow: hidden; border-radius: 8px; background: #38505a; }.bar i { display: block; height: 100%; border-radius: inherit; width: 0; background: var(--lime); transition: width .7s ease; }.signal b { color: #93a8ad; font: 10px "DM Mono", monospace; text-align: right; }
+      .evidence-caption { display: block; margin-top: 15px; color: #8ba0a6; font: 9px "DM Mono", monospace; letter-spacing: .04em; line-height: 1.45; }.disclaimer { margin: 15px 0 0; color: #748991; font-size: 10px; line-height: 1.5; }
+
+      .signs { background: #fff; }.sign-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 70px; margin-top: 48px; }.sign-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }.sign-list li { display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 13px; min-height: 76px; border-bottom: 1px solid var(--line); }.sign-no { color: var(--teal); font: 500 11px "DM Mono", monospace; }.sign-list strong { display: block; font-size: 14px; letter-spacing: -.03em; }.sign-list span { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; }.plus { color: var(--teal); font-size: 24px; font-weight: 300; }
+      .case-study { position: relative; overflow: hidden; min-height: 395px; border-radius: 7px; background: #1f4149; }.case-study img { width: 100%; height: 100%; min-height: 395px; object-fit: cover; filter: grayscale(.65) contrast(1.15); opacity: .82; }.case-study::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(9,27,33,.82), rgba(13,35,42,.12)); }.case-copy { position: absolute; left: 30px; bottom: 28px; z-index: 1; max-width: 340px; color: white; }.case-copy span { color: var(--lime); font: 500 10px "DM Mono", monospace; }.case-copy h3 { margin: 10px 0; font-size: 25px; line-height: 1.05; letter-spacing: -.06em; }.case-copy p { margin: 0; color: #d3dedf; font-size: 12px; line-height: 1.6; }
+
+      .cta { padding: 82px 0; background: var(--teal); color: white; }.cta-inner { display: flex; align-items: center; justify-content: space-between; gap: 35px; }.cta h2 { max-width: 680px; margin: 0; font-size: clamp(32px,4.2vw,55px); line-height: 1.03; letter-spacing: -.075em; }.cta .button { flex: 0 0 auto; background: var(--lime); color: var(--ink); }
+      footer { padding: 42px 0 24px; background: var(--ink); color: white; }.footer-top { display: flex; justify-content: space-between; gap: 40px; padding-bottom: 37px; border-bottom: 1px solid #34454e; }.footer-copy { max-width: 340px; margin-top: 16px; color: #9babb1; font-size: 12px; line-height: 1.6; }.footer-links { display: flex; gap: 55px; }.footer-links div { display: grid; align-content: start; gap: 12px; }.footer-links span { margin-bottom: 4px; color: #7f949c; font: 10px "DM Mono", monospace; text-transform: uppercase; }.footer-links a { color: #d5dee0; font-size: 12px; }.footer-bottom { display: flex; justify-content: space-between; padding-top: 22px; color: #70858d; font: 10px "DM Mono", monospace; }
+
+      @media (max-width: 860px) { nav a:not(.nav-cta) { display: none; }.hero-grid, .what-grid, .lab-intro { grid-template-columns: 1fr; }.hero-grid { padding: 76px 0 55px; }.hero-art { height: 430px; }.portrait-card { right: 14%; }.halo { right: 9%; }.trust-inner { grid-template-columns: 1fr 1fr; padding: 20px 0; }.method-grid { grid-template-columns: 1fr 1fr; }.sign-grid { grid-template-columns: 1fr; }.lab-intro { gap: 40px; }.cta-inner { align-items: start; flex-direction: column; }.footer-top { flex-direction: column; }.analyzer-body { grid-template-columns: 1fr; }.drop-zone { min-height: 320px; border-right: 0; border-bottom: 1px solid #3a4c55; }.assessment-grid { grid-template-columns: 1fr; }.assessment { min-height: 95px; } }
+      @media (max-width: 520px) { .shell { width: min(100% - 32px, 1180px); }.topbar { height: 66px; }.nav-cta { padding: 9px 12px; }.hero { min-height: auto; }.hero h1 { font-size: 48px; }.stat-row { gap: 14px; }.stat { padding-right: 14px; }.stat strong { font-size: 19px; }.hero-art { height: 345px; }.portrait-card { right: 8%; top: 38px; }.halo { width: 335px; height: 335px; }.tag-two { left: 0; bottom: 23px; }.method-grid, .risk-list { grid-template-columns: 1fr; }.method-header { display: block; }.method { min-height: 225px; }.method .icon-box { margin: 25px 0 17px; }.section-heading { font-size: 34px; } section { padding: 75px 0; }.sign-grid { gap: 42px; }.footer-links { gap: 30px; flex-wrap: wrap; }.footer-bottom { gap: 12px; flex-direction: column; }.trust-inner { gap: 15px; }.trust-label { grid-column: 1/-1; }.analyzer { margin: 0 -3px; } }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="shell topbar">
+        <a class="brand" href="#top" aria-label="MorphGuard home"><span class="mark" aria-hidden="true"></span>MorphGuard</a>
+        <nav aria-label="Main navigation">
+          <a href="#works">How it works</a>
+          <a href="#lab">Try the lab</a>
+          <a href="#learn">Learn</a>
+          <a class="nav-cta" href="#lab">Analyze an image <span aria-hidden="true">↗</span></a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="shell hero-grid">
+          <div>
+            <p class="eyebrow">Image integrity intelligence</p>
+            <h1>When a photo <em>isn’t</em> what it seems.</h1>
+            <p class="intro">Understand the subtle clues left behind by face morphing, compositing, and digital manipulation — before an image informs a decision.</p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="#lab">Explore the detection lab <span aria-hidden="true">→</span></a>
+              <a class="button button-ghost" href="#how-it-works">How morphing works</a>
+            </div>
+
+          </div>
+          <div class="hero-art" aria-label="Illustration of a face being scanned for evidence">
+            <div class="halo"></div>
+            <div class="portrait-card"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=85" alt="Portrait being evaluated" /></div>
+            <div class="tag tag-one"><i class="tag-dot"></i> FEATURE ALIGNMENT: 81.3%</div>
+            <div class="tag tag-two"><i class="tag-dot"></i> BLEND BOUNDARY DETECTED</div>
+            <span class="art-label">SCAN_04 / FACE_REGION</span>
+          </div>
+        </div>
+      </section>
+
+      <div class="trust-bar">
+        <div class="shell trust-inner">
+          <div class="trust-label">Built for people who need to trust what they see.</div>
+          <div class="trust-item">Journalism</div><div class="trust-item">Identity teams</div><div class="trust-item">Research labs</div>
+        </div>
+      </div>
+
+      <section id="how-it-works">
+        <div class="shell what-grid">
+          <div class="explain-art" aria-label="Two face images merging into a single manipulated image">
+            <div class="face face-a"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80" alt="Source portrait one" /></div>
+            <div class="face face-b"><img src="https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=600&q=80" alt="Source portrait two" /></div>
+            <div class="blend" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 24h28M25 13l11 11-11 11"/><path d="M14 13 3 24l11 11"/></svg></div>
+            <div class="explain-note">A morph combines characteristics from two or more faces to create one convincing new identity.</div>
+          </div>
+          <div>
+            <p class="eyebrow">The anatomy of a morph</p>
+            <h2 class="section-heading">The image may look whole. Its evidence isn’t.</h2>
+            <p class="definition">Morphing software finds shared landmarks — eyes, nose, jawline — then <b>warps and blends</b> the source images into a new composite. The result can fool people and some systems, but it often leaves a pattern.</p>
+            <div class="risk-list">
+              <div class="risk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m5 12 4 4L19 6"/></svg><div><strong>Identity fraud</strong><p>A single image can resemble more than one person.</p></div></div>
+              <div class="risk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m5 12 4 4L19 6"/></svg><div><strong>False evidence</strong><p>Altered imagery can change the context of a claim.</p></div></div>
+              <div class="risk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m5 12 4 4L19 6"/></svg><div><strong>Damaged trust</strong><p>One questionable asset can cast doubt on a whole record.</p></div></div>
+              <div class="risk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m5 12 4 4L19 6"/></svg><div><strong>Harder verification</strong><p>Manipulations evolve as detection gets better.</p></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="methods">
+        <div class="shell">
+          <div class="method-header"><div><p class="eyebrow">Read the residue</p><h2 class="section-heading">Four ways to interrogate an image.</h2></div><p class="section-copy">No single signal is conclusive. The most reliable reviews combine visual context with technical evidence.</p></div>
+          <div class="method-grid">
+            <article class="method"><span class="method-number">01 / PIXELS</span><div class="icon-box"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><rect x="14" y="14" width="6" height="6"/></svg></div><h3>Texture &amp; pixels</h3><p>Look for irregular skin texture, resampling artifacts, or inconsistent compression.</p><span class="method-arrow">↗</span></article>
+            <article class="method"><span class="method-number">02 / LIGHT</span><div class="icon-box"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg></div><h3>Light &amp; shadows</h3><p>Check whether highlights, shadows, and reflections agree across the scene.</p><span class="method-arrow">↗</span></article>
+            <article class="method"><span class="method-number">03 / SHAPE</span><div class="icon-box"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 19c0-6 2-14 7-14s7 8 7 14"/><path d="M8 12c1.5 1 2.5 1 4 0 1.5 1 2.5 1 4 0M10 17h4"/></svg></div><h3>Landmark geometry</h3><p>Measure face proportions and symmetry against natural anatomical relationships.</p><span class="method-arrow">↗</span></article>
+            <article class="method"><span class="method-number">04 / FILE</span><div class="icon-box"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5M10 13h5M10 17h5"/></svg></div><h3>Metadata trail</h3><p>Review file history, editing software, timestamps, and provenance details.</p><span class="method-arrow">↗</span></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="lab" id="lab">
+        <div class="shell lab-grid">
+          <div class="lab-intro">
+            <div><p class="eyebrow">Interactive preview</p><h2 class="section-heading">Put your eye to the evidence.</h2></div>
+            <div><p class="section-copy">Upload a photo for a local integrity screen. The detector measures pixels, recompression residue, central-face symmetry, and metadata markers — then gives a clear screening result.</p>
+            <ul class="check-list"><li><i>✓</i>All image processing stays in this browser</li><li><i>✓</i>Measured pixel and compression artifacts</li><li><i>✓</i>Clear result with a confidence estimate</li></ul></div>
+          </div>
+          <div class="analyzer">
+            <div class="analyzer-top"><div class="window-dots"><i></i><i></i><i></i></div><span>LOCAL_IMAGE_INTEGRITY_SCREEN / V1</span></div>
+            <div class="analyzer-body">
+              <label class="drop-zone" id="dropZone" for="imageInput">
+                <img id="previewImage" alt="Selected image preview" />
+                <canvas class="evidence-map" id="evidenceMap" aria-label="Error-level evidence map"></canvas>
+                <input id="imageInput" class="file-input" type="file" accept="image/*" />
+                <div class="upload-copy"><div class="upload-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 16V4M8 8l4-4 4 4M5 20h14"/></svg></div><strong>Drop an image here</strong><span>or <b>browse your files</b> · JPG, PNG, WEBP</span></div>
+              </label>
+              <div class="results"><div class="results-title"><span>FORENSIC SCREENING REPORT</span><span class="demo-pill">runs locally</span></div><div class="verdict-panel" id="verdictPanel"><span class="verdict-kicker">AWAITING IMAGE</span><h3 class="verdict-large" id="verdict">UPLOAD TO ANALYZE</h3><p class="verdict-detail" id="verdictDetail">Choose a photo to evaluate editing artifacts, morph-like geometry, and AI provenance markers.</p></div><div class="assessment-grid"><article class="assessment" id="editAssessment" data-state="unknown"><span>Digital manipulation</span><strong id="editLabel">NOT ANALYZED</strong><p id="editNote">Checks compression, noise, edges, and known editing metadata.</p></article><article class="assessment" id="morphAssessment" data-state="unknown"><span>Face morphing</span><strong id="morphLabel">NOT ANALYZED</strong><p id="morphNote">Checks central symmetry and localized blending residue.</p></article><article class="assessment" id="aiAssessment" data-state="unknown"><span>AI provenance</span><strong id="aiLabel">NOT ANALYZED</strong><p id="aiNote">Looks for AI generator and Content Credentials metadata.</p></article></div><div class="gauge-wrap"><div class="gauge"><strong id="score">—</strong></div><div class="score-note"><strong id="scoreTitle">No analysis yet</strong><span id="scoreNote">The score represents the amount of pixel residue that warrants follow-up, not proof that an image is genuine or manipulated.</span></div></div><div class="image-facts"><div class="fact"><span>FORMAT</span><b id="fileFormat">—</b></div><div class="fact"><span>DIMENSIONS</span><b id="dimensions">—</b></div><div class="fact"><span>FILE SIZE</span><b id="fileSize">—</b></div><div class="fact"><span>METADATA</span><b id="editMarker">—</b></div></div><div class="signals"><div class="signal"><span>ERROR-LEVEL RESIDUE</span><div class="bar"><i id="compression"></i></div><b id="compressionScore">—</b></div><div class="signal"><span>NOISE CONSISTENCY</span><div class="bar"><i id="noise"></i></div><b id="noiseScore">—</b></div><div class="signal"><span>FACE-REGION SYMMETRY</span><div class="bar"><i id="symmetry"></i></div><b id="symmetryScore">—</b></div><div class="signal"><span>EDGE DISCONTINUITIES</span><div class="bar"><i id="edges"></i></div><b id="edgesScore">—</b></div></div><span class="evidence-caption">EVIDENCE MAP: brighter areas differ more after a controlled JPEG recompression. It is a lead for review, not proof of tampering.</span><p class="disclaimer">This screen cannot determine AI editing from pixels alone when provenance data is missing. A trained, validated detection model and human review are required where identity, safety, or legal decisions depend on the result.</p></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="signs" id="learn">
+        <div class="shell"><p class="eyebrow">A practical field guide</p><h2 class="section-heading">Small inconsistencies. Big questions.</h2><div class="sign-grid"><ul class="sign-list"><li><b class="sign-no">01</b><div><strong>Unnatural transitions</strong><span>Edges around hair, ears, jaw, and glasses may not resolve cleanly.</span></div><i class="plus">+</i></li><li><b class="sign-no">02</b><div><strong>Inconsistent details</strong><span>Skin texture, facial hair, and fine lines can vary across a face.</span></div><i class="plus">+</i></li><li><b class="sign-no">03</b><div><strong>Misaligned context</strong><span>Lighting, perspective, or a reflection may disagree with the subject.</span></div><i class="plus">+</i></li><li><b class="sign-no">04</b><div><strong>Missing provenance</strong><span>Absent originals and unclear editing history deserve extra scrutiny.</span></div><i class="plus">+</i></li></ul><article class="case-study"><img src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=1100&q=85" alt="Close portrait example for visual verification" /><div class="case-copy"><span>LOOK CLOSER / EXAMPLE</span><h3>Start where the image has to do the most work.</h3><p>Zoom in on boundaries and distinctive features, then compare them against the lighting and texture around them.</p></div></article></div></div>
+      </section>
+
+      <section class="cta"><div class="shell cta-inner"><h2>Trust is not a feeling. It’s a process.</h2><a href="#lab" class="button">Open the integrity lab <span aria-hidden="true">→</span></a></div></section>
+    </main>
+    <footer><div class="shell"><div class="footer-top"><div><a class="brand" href="#top"><span class="mark" aria-hidden="true"></span>MorphGuard</a><p class="footer-copy">A visual learning experience about photo morphing, image tampering, and the signals that help us ask better questions.</p></div><div class="footer-links"><div><span>Explore</span><a href="#how-it-works">How it works</a><a href="#lab">Integrity lab</a><a href="#learn">Field guide</a></div><div><span>Remember</span><a href="#learn">Verify sources</a><a href="#lab">Use human review</a><a href="#top">Protect context</a></div></div></div><div class="footer-bottom"><span>© 2026 MORPHGUARD / EDUCATIONAL DEMO</span><span>DESIGNED FOR CLEARER SEEING</span></div></div></footer>
+
+    <script>
+      const input = document.getElementById('imageInput');
+      const zone = document.getElementById('dropZone');
+      const preview = document.getElementById('previewImage');
+      const evidenceMap = document.getElementById('evidenceMap');
+      const score = document.getElementById('score');
+      const scoreTitle = document.getElementById('scoreTitle');
+      const scoreNote = document.getElementById('scoreNote');
+      const verdict = document.getElementById('verdict');
+      const verdictDetail = document.getElementById('verdictDetail');
+      const verdictPanel = document.getElementById('verdictPanel');
+      const facts = { format: document.getElementById('fileFormat'), dimensions: document.getElementById('dimensions'), size: document.getElementById('fileSize'), marker: document.getElementById('editMarker') };
+      const signals = { compression: document.getElementById('compression'), noise: document.getElementById('noise'), symmetry: document.getElementById('symmetry'), edges: document.getElementById('edges') };
+      const values = { compression: document.getElementById('compressionScore'), noise: document.getElementById('noiseScore'), symmetry: document.getElementById('symmetryScore'), edges: document.getElementById('edgesScore') };
+      const assessments = {
+        edit: { card: document.getElementById('editAssessment'), label: document.getElementById('editLabel'), note: document.getElementById('editNote') },
+        morph: { card: document.getElementById('morphAssessment'), label: document.getElementById('morphLabel'), note: document.getElementById('morphNote') },
+        ai: { card: document.getElementById('aiAssessment'), label: document.getElementById('aiLabel'), note: document.getElementById('aiNote') }
+      };
+      let previewUrl = '';
+
+      const clamp = (value, min = 0, max = 100) => Math.min(max, Math.max(min, value));
+      const luma = (pixels, position) => pixels[position] * .2126 + pixels[position + 1] * .7152 + pixels[position + 2] * .0722;
+      const formatBytes = bytes => bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+      function loadImage(blob) {
+        return new Promise((resolve, reject) => {
+          const url = URL.createObjectURL(blob);
+          const image = new Image();
+          image.onload = () => { URL.revokeObjectURL(url); resolve(image); };
+          image.onerror = () => { URL.revokeObjectURL(url); reject(new Error('The image could not be read.')); };
+          image.src = url;
+        });
+      }
+      function canvasFrom(image) {
+        const scale = Math.min(1, 760 / Math.max(image.naturalWidth, image.naturalHeight));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+        canvas.getContext('2d', { willReadFrequently: true }).drawImage(image, 0, 0, canvas.width, canvas.height);
+        return canvas;
+      }
+      function inspectMetadata(buffer) {
+        const source = new TextDecoder('latin1').decode(new Uint8Array(buffer).slice(0, 1000000)).toLowerCase();
+        const firstMatch = list => list.find(item => source.includes(item));
+        const editing = firstMatch(['adobe photoshop', 'adobe lightroom', 'faceapp', 'facetune', 'gimp', 'snapseed', 'beautyplus', 'picsart', 'pixelmator']);
+        const ai = firstMatch(['stable diffusion', 'midjourney', 'dall-e', 'openai', 'comfyui', 'automatic1111', 'invokeai', 'adobe firefly', 'generative fill', 'imagen', 'gemini', 'aigc']);
+        const credentials = source.includes('c2pa') || source.includes('content credentials');
+        return { editing, ai, credentials, summary: ai || editing || (credentials ? 'content credentials' : 'no marker found') };
+      }
+      function calculateSpatialSignals(pixels, width, height) {
+        const step = Math.max(2, Math.floor(Math.min(width, height) / 240));
+        let pairDifference = 0, pairCount = 0, abruptEdges = 0, edgeCount = 0;
+        const tileTotals = Array.from({ length: 36 }, () => ({ sum: 0, count: 0 }));
+        const minY = Math.floor(height * .16), maxY = Math.floor(height * .82);
+        const minX = Math.floor(width * .18), middle = Math.floor(width / 2);
+        for (let y = minY; y < maxY; y += step) {
+          for (let x = minX; x < middle; x += step) {
+            const mirrorX = width - 1 - x;
+            const left = (y * width + x) * 4, right = (y * width + mirrorX) * 4;
+            pairDifference += Math.abs(pixels[left] - pixels[right]) + Math.abs(pixels[left + 1] - pixels[right + 1]) + Math.abs(pixels[left + 2] - pixels[right + 2]);
+            pairCount += 3;
+          }
+        }
+        for (let y = step; y < height - step; y += step) {
+          for (let x = step; x < width - step; x += step) {
+            const current = (y * width + x) * 4;
+            const horizontal = (y * width + (x - step)) * 4;
+            const vertical = ((y - step) * width + x) * 4;
+            const center = luma(pixels, current);
+            const gradient = Math.abs(center - luma(pixels, horizontal)) + Math.abs(center - luma(pixels, vertical));
+            if (gradient > 92) abruptEdges++;
+            const residual = Math.abs(4 * center - luma(pixels, horizontal) - luma(pixels, vertical) - luma(pixels, (y * width + (x + step)) * 4) - luma(pixels, ((y + step) * width + x) * 4));
+            const tx = Math.min(5, Math.floor(x / width * 6)), ty = Math.min(5, Math.floor(y / height * 6));
+            tileTotals[ty * 6 + tx].sum += residual;
+            tileTotals[ty * 6 + tx].count++;
+            edgeCount++;
+          }
+        }
+        const tileMeans = tileTotals.filter(tile => tile.count).map(tile => tile.sum / tile.count);
+        const averageNoise = tileMeans.reduce((sum, value) => sum + value, 0) / Math.max(1, tileMeans.length);
+        const noiseDeviation = Math.sqrt(tileMeans.reduce((sum, value) => sum + (value - averageNoise) ** 2, 0) / Math.max(1, tileMeans.length));
+        const normalizedDifference = pairCount ? pairDifference / pairCount / 255 : .5;
+        return {
+          symmetry: Math.round(clamp((.19 - normalizedDifference) / .19 * 100)),
+          edges: Math.round(clamp(((abruptEdges / Math.max(1, edgeCount)) * 100 - 5) * 5)),
+          noise: Math.round(clamp((noiseDeviation / Math.max(1, averageNoise) - .22) / .45 * 100))
+        };
+      }
+      function drawEvidenceMap(differences, width, height) {
+        evidenceMap.width = width;
+        evidenceMap.height = height;
+        const context = evidenceMap.getContext('2d');
+        const output = context.createImageData(width, height);
+        for (let position = 0; position < differences.length; position += 4) {
+          const intensity = clamp(differences[position] * .72 + differences[position + 1] * .2 + differences[position + 2] * .08, 0, 255);
+          output.data[position] = intensity;
+          output.data[position + 1] = Math.max(0, intensity - 75);
+          output.data[position + 2] = 0;
+          output.data[position + 3] = intensity > 20 ? Math.min(205, intensity * 1.8) : 0;
+        }
+        context.putImageData(output, 0, 0);
+      }
+      async function compressionResidue(canvas, originalPixels) {
+        const recompressed = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', .84));
+        if (!recompressed) return { score: 0, centerScore: 0 };
+        const image = await loadImage(recompressed);
+        const copy = document.createElement('canvas');
+        copy.width = canvas.width;
+        copy.height = canvas.height;
+        copy.getContext('2d', { willReadFrequently: true }).drawImage(image, 0, 0, copy.width, copy.height);
+        const copiedPixels = copy.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, copy.width, copy.height).data;
+        const differences = new Uint8ClampedArray(originalPixels.length);
+        let totalDifference = 0, count = 0, centerDifference = 0, centerCount = 0;
+        for (let y = 0; y < canvas.height; y++) {
+          for (let x = 0; x < canvas.width; x++) {
+            const position = (y * canvas.width + x) * 4;
+            const red = Math.abs(originalPixels[position] - copiedPixels[position]);
+            const green = Math.abs(originalPixels[position + 1] - copiedPixels[position + 1]);
+            const blue = Math.abs(originalPixels[position + 2] - copiedPixels[position + 2]);
+            differences[position] = red; differences[position + 1] = green; differences[position + 2] = blue; differences[position + 3] = 255;
+            const difference = (red + green + blue) / 3;
+            totalDifference += difference; count++;
+            if (x > canvas.width * .2 && x < canvas.width * .8 && y > canvas.height * .15 && y < canvas.height * .82) { centerDifference += difference; centerCount++; }
+          }
+        }
+        drawEvidenceMap(differences, canvas.width, canvas.height);
+        const scoreFromDifference = value => Math.round(clamp((value - 2) / 18 * 100));
+        return { score: scoreFromDifference(totalDifference / Math.max(1, count)), centerScore: scoreFromDifference(centerDifference / Math.max(1, centerCount)) };
+      }
+      function setSignal(name, value, color) {
+        signals[name].style.width = `${value}%`;
+        signals[name].style.background = color;
+        values[name].textContent = value;
+      }
+      function updateAssessment(name, state, label, note) {
+        assessments[name].card.dataset.state = state;
+        assessments[name].label.textContent = label;
+        assessments[name].note.textContent = note;
+      }
+      function scoreState(scoreValue) { return scoreValue >= 65 ? 'flag' : scoreValue >= 38 ? 'review' : 'clear'; }
+      function setReport({ editScore, morphScore, metadata, signals: signalData, coverage }) {
+        const aiSignal = metadata.ai ? 92 : 0;
+        const priority = Math.round(Math.max(editScore, morphScore, aiSignal));
+        const flagged = priority >= 65, review = priority >= 38;
+        const color = flagged ? '#f87865' : review ? '#f7c454' : '#c9f368';
+        const overallLabel = metadata.ai ? 'AI PROVENANCE MARKER FOUND' : flagged ? (morphScore >= editScore ? 'MORPH-LIKE ARTIFACTS DETECTED' : 'LIKELY DIGITALLY MANIPULATED') : review ? 'REVIEW RECOMMENDED' : 'NO STRONG MANIPULATION SIGNALS';
+        const overallDetail = metadata.ai
+          ? `The file contains a ${metadata.ai} marker. This is strong provenance evidence, but does not identify every AI edit.`
+          : flagged
+            ? 'Multiple independent checks found material anomalies. Preserve the original and route this image to a trained model and qualified reviewer.'
+            : review
+              ? 'The scan found signals worth checking. The available evidence cannot establish a reliable edit or morph decision.'
+              : 'The local scan found no strong anomalies. This does not certify the image as original, unedited, or human-made.';
+        score.textContent = `${priority}%`;
+        score.parentElement.style.background = `conic-gradient(${color} 0 ${priority}%, #38515a ${priority}% 100%)`;
+        verdict.textContent = overallLabel;
+        verdictDetail.textContent = overallDetail;
+        verdictPanel.querySelector('.verdict-kicker').textContent = `SCREEN COMPLETE / ${coverage}% PIXEL COVERAGE`;
+        verdictPanel.style.borderLeftColor = color;
+        scoreTitle.textContent = 'Review priority score';
+        scoreNote.textContent = `Calculated from image-forensics signals; ${coverage}% reflects scan coverage, not a model accuracy claim.`;
+        const editState = scoreState(editScore), morphState = scoreState(morphScore);
+        updateAssessment('edit', editState, editState === 'flag' ? 'LIKELY EDITED' : editState === 'review' ? 'REVIEW NEEDED' : 'NO STRONG EDIT SIGNALS', editState === 'flag' ? 'Compression, noise, edge, or metadata checks found anomalies.' : editState === 'review' ? 'Some file and pixel checks differ from a uniform image history.' : 'No significant local editing residue was measured.');
+        updateAssessment('morph', morphState, morphState === 'flag' ? 'MORPH-LIKE SIGNALS' : morphState === 'review' ? 'MORPH REVIEW NEEDED' : 'NO CLEAR MORPH SIGNALS', morphState === 'flag' ? 'Central symmetry and blend-residue checks exceeded the review threshold.' : morphState === 'review' ? 'Central-face screening found mixed measurements.' : 'No strong central morph pattern was measured.');
+        if (metadata.ai) updateAssessment('ai', 'flag', 'AI MARKER FOUND', `Embedded metadata references ${metadata.ai}.`);
+        else if (metadata.credentials) updateAssessment('ai', 'review', 'CREDENTIALS PRESENT', 'Content Credentials are present; verify the signed claim outside this local screen.');
+        else updateAssessment('ai', 'unknown', 'NOT VERIFIABLE', 'No common AI marker was found. Pixels alone cannot reliably prove that AI was or was not used.');
+        setSignal('compression', signalData.compression, '#f87865');
+        setSignal('noise', signalData.noise, '#c980ef');
+        setSignal('symmetry', signalData.symmetry, '#f7c454');
+        setSignal('edges', signalData.edges, '#c9f368');
+      }
+      async function analyzeImage(file) {
+        if (!file || !file.type.startsWith('image/')) return;
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        previewUrl = URL.createObjectURL(file);
+        preview.src = previewUrl;
+        zone.classList.add('has-image');
+        verdict.textContent = 'ANALYZING…';
+        verdictDetail.textContent = 'Measuring error-level residue, noise variation, central-face patterns, edge discontinuities, and embedded provenance.';
+        score.textContent = '…';
+        Object.keys(assessments).forEach(name => updateAssessment(name, 'unknown', 'ANALYZING', 'Processing the uploaded image locally.'));
+        try {
+          const [image, buffer] = await Promise.all([loadImage(file), file.arrayBuffer()]);
+          const canvas = canvasFrom(image);
+          const pixels = canvas.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, canvas.width, canvas.height).data;
+          const [spatial, compression] = await Promise.all([Promise.resolve(calculateSpatialSignals(pixels, canvas.width, canvas.height)), compressionResidue(canvas, pixels)]);
+          const metadata = inspectMetadata(buffer);
+          const editScore = Math.round(clamp(compression.score * .40 + spatial.noise * .27 + spatial.edges * .25 + (metadata.editing ? 22 : 0)));
+          const morphScore = Math.round(clamp(compression.centerScore * .38 + spatial.symmetry * .45 + spatial.noise * .17));
+          const coverage = Math.round(clamp(40 + Math.min(42, Math.log10(Math.max(1, image.naturalWidth * image.naturalHeight)) * 7) + (file.type === 'image/jpeg' ? 9 : 3)));
+          facts.format.textContent = file.type.replace('image/', '').toUpperCase() || 'IMAGE';
+          facts.dimensions.textContent = `${image.naturalWidth} × ${image.naturalHeight}`;
+          facts.size.textContent = formatBytes(file.size);
+          facts.marker.textContent = metadata.summary.toUpperCase();
+          setReport({ editScore, morphScore, metadata, signals: { compression: compression.score, noise: spatial.noise, symmetry: spatial.symmetry, edges: spatial.edges }, coverage });
+        } catch (error) {
+          verdict.textContent = 'CANNOT ANALYZE';
+          verdictDetail.textContent = 'This image could not be decoded in the browser. Try a JPG, PNG, or WEBP file.';
+          score.textContent = '—';
+          Object.keys(assessments).forEach(name => updateAssessment(name, 'unknown', 'UNAVAILABLE', 'The selected file could not be processed.'));
+        }
+      }
+      input.addEventListener('change', e => analyzeImage(e.target.files[0]));
+      ['dragenter', 'dragover'].forEach(type => zone.addEventListener(type, e => { e.preventDefault(); zone.classList.add('drag'); }));
+      ['dragleave', 'drop'].forEach(type => zone.addEventListener(type, e => { e.preventDefault(); zone.classList.remove('drag'); }));
+      zone.addEventListener('drop', e => analyzeImage(e.dataTransfer.files[0]));
+    </script>
+  </body>
+</html>
